@@ -1,3 +1,5 @@
+import SearchInput from "@/components/search-input";
+
 interface RootPageProps {
 
 };
