@@ -17,7 +17,6 @@ model Category {
 
 model Companion {
   id           String    @id @default(uuid())
-  userID       String
   userName     String
   src          String
   name         String
@@ -27,6 +26,7 @@ model Companion {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   categoryId   String
+  userId       String
   category     Category  @relation(fields: [categoryId], references: [id])
   messages     Message[]
 
