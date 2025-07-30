@@ -25,6 +25,7 @@ export const Companions = ({
                         className="grayscale"
                         src="/empty.png"
                         alt="Empty"
+                        unoptimized
                     />
                 </div>
                 <p className="text-sm text-muted-foreground">No companions found.</p>

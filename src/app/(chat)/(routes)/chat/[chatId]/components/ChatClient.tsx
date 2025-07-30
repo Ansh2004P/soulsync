@@ -20,7 +20,7 @@ export const ChatClient = ({ companion }: ChatClientProps) => {
     return (
         <div>
             <ChatHeader companion={companion} />
-            <ChatMessages
+            {/* <ChatMessages
                 companion={companion}
                 isLoading={isLoading}
                 messages={messages}
@@ -30,7 +30,7 @@ export const ChatClient = ({ companion }: ChatClientProps) => {
                 input={input}
                 handleInputChange={handleInputChange}
                 onSubmit={onSubmit}
-            />
+            /> */}
         </div>
     )
 }
