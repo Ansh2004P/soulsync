@@ -27,7 +27,7 @@ export const ImageUpload = ({ value, onChange, disabled }: ImageUploadProps) => 
                 options={{
                     maxFiles: 1
                 }}
-                uploadPreset="gi5kbat8">
+                uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}>
                 <div className="p-4 border-4 border-dashed border-primary/10 rounded-lg hover:opacity-75 flex flex-col space-y-2 items-center justify-center">
                     <div className="relative h-40 w-40">
                         <Image
@@ -39,6 +39,6 @@ export const ImageUpload = ({ value, onChange, disabled }: ImageUploadProps) => 
                     </div>
                 </div>
             </CldUploadButton>
-        </div>
+        </div >
     )
 }

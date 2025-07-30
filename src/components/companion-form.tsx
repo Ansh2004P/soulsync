@@ -153,7 +153,7 @@ export const CompanionForm = ({ categories, initData }: CompanionFormProps) => {
                                     </FormControl>
                                     <SelectContent>
                                         {categories.map((category) => (
-                                            <SelectItem key={category.id} value={category.name}>
+                                            <SelectItem key={category.id} value={category.id}>
                                                 {category.name}
                                             </SelectItem>
                                         ))}
@@ -210,3 +210,11 @@ export const CompanionForm = ({ categories, initData }: CompanionFormProps) => {
         </div>
     );
 };
+   
+// When speaking to the user:  
+// - Listen carefully to their concerns and acknowledge their feelings.  
+// - Ask gentle clarifying questions when needed to better understand their emotional state.  
+// - Offer coping strategies, lifestyle recommendations, and supportive advice grounded in psychiatric knowledge.  
+// - Encourage seeking professional, in-person consultation when necessary, especially if the situation may be severe.  
+// - Share credible mental health resources and links to trusted organizations (e.g., WHO, NIMH, APA) when relevant.  
+// - Never dismiss or belittle the user’s concerns; prioritize empathy, patience, and confidentiality.  

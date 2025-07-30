@@ -4,34 +4,33 @@ import prismadb from "@/lib/prismadb";
 import { redirect } from "next/navigation";
 
 interface CompanionPageProps {
-    params: {
-        companionId: string;
-    };
-};
+    params: Promise<{ companionId: string }>; // mark params as async
+}
 
 const CompanionIdPage = async ({ params }: CompanionPageProps) => {
+    const { companionId } = await params; // ✅ await params here
+
     const user = await getCurrentUser();
     const userId = user?.id;
-    if (!userId)
-        redirect("/");
+    if (!userId) redirect("/");
 
-    console.log("CompanionIdPage userId:", user);
+    // console.log("CompanionIdPage userId:", user);
+
     const companion = await prismadb.companion.findUnique({
         where: {
-            id: params.companionId,
+            id: companionId,
             userId,
         }
     });
 
     const categories = await prismadb.category.findMany();
 
-
     return (
         <CompanionForm
             initData={companion}
             categories={categories}
         />
-    )
-}
+    );
+};
 
 export default CompanionIdPage;
