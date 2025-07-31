@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "postinstall": "prisma generate",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "test:load": "artillery run artillery.yml",
     "test:load:quick": "artillery run artillery.yml --config '{\"phases\":[{\"duration\":30,\"arrivalRate\":5}]}'",
