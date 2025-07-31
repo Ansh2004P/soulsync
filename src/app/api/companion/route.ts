@@ -8,7 +8,7 @@ export async function POST(req: Request) {
         const user = await getCurrentUser();
         // console.log("POST user:", user);
         const { src, name, description, instructions, seed, categoryId } = body;
-        console.log(categoryId, "categoryId");
+        // console.log(categoryId, "categoryId");
         if (!user || !user.id || !user.given_name) {
             return new NextResponse("Unauthorized", { status: 401 });
         }
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json(companion);
     } catch (error) {
-        console.log("[COMPANION_POST]", error);
+        // console.log("[COMPANION_POST]", error);
         return new NextResponse("Internal Error", { status: 500 });
     }
 };

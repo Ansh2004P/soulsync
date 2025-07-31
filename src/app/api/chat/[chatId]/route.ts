@@ -2,6 +2,7 @@ import { getCurrentUser } from "@/hooks/use-currenUser";
 import prismadb from "@/lib/prismadb";
 import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
+import { MemoryManager } from "@/lib/memory";
 
 
 interface ChatIdProps {
@@ -41,6 +42,24 @@ export async function POST(
       return new NextResponse("Companion not found", { status: 404 });
     }
 
+    const name = companion.id;
+
+    const companionKey = {
+      companionName: name!,
+      userId: user.id,
+      modelName: "gemini-2.5-flash",
+    };
+
+    const memoryManager = await MemoryManager.getInstance();
+
+    const records = await memoryManager.readLatestHistory(companionKey);
+    if (records.length === 0) {
+      await memoryManager.seedChatHistory(companion.seed, "\n\n", companionKey);
+    }
+    await memoryManager.writeToHistory("User: " + prompt + "\n", companionKey);
+
+    const recentChatHistory =await memoryManager.readLatestHistory(companionKey);
+
     // Call Gemini
     const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GENAI_API_KEY });
 
@@ -52,10 +71,10 @@ export async function POST(
           parts: [
             {
               text: `
-                ONLY generate plain sentences without prefix of who is speaking.
+                ONLY generate plain sentences without prefix of who is speaking. DO NOT use ${companion.name}: prefix. 
+
                 ${companion.instructions}
-                 User: ${prompt}
-                `
+                 ${recentChatHistory}\n${companion.name}:`
             },
           ],
         },

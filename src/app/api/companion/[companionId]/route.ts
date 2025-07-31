@@ -3,14 +3,15 @@ import prismadb from "@/lib/prismadb";
 import { NextResponse } from "next/server";
 
 export async function PATCH(
-    req: Request, { params }: { params: { companionId: string } }
+    req: Request, { params }: { params: Promise<{ companionId: string }> }
 ) {
     try {
+        const { companionId } = await params;
         const body = await req.json();
         const user = await getCurrentUser();
         const { src, name, description, instructions, seed, categoryId } = body;
 
-        if (!params.companionId)
+        if (!companionId)
             return new NextResponse("Companion ID is required", { status: 400 });
 
         if (!user || !user.id || !user.given_name) {
@@ -23,7 +24,7 @@ export async function PATCH(
 
         const companion = await prismadb.companion.update({
             where: {
-                id: params.companionId,
+                id: companionId,
                 userId: user.id
             }, data: {
                 categoryId,
@@ -45,24 +46,28 @@ export async function PATCH(
 };
 
 export async function DELETE(req: Request,
-    { params }: { params: { companionId: string } }
+    { params }: { params: Promise<{ companionId: string }>}
 ) {
     try {
         const user = await getCurrentUser();
         const userId = user?.id;
-
-        if (user || !userId) {
+        // console.log("User ID:", userId);
+        if (!userId) {
             return new NextResponse("Unauthorized", { status: 401 });
         }
+
+        const { companionId } = await params;
 
         const companion = await prismadb.companion.delete({
             where: {
                 userId,
-                id: params.companionId
+                id: companionId
             }
         })
+
+        return NextResponse.json({ message: "Companion deleted successfully" });
     } catch (error) {
-        console.log("[COMPANION_DELETE]", error);
+        console.error("[COMPANION_DELETE]", error);
         return new NextResponse("Internal Error", { status: 500 });
     }
 };

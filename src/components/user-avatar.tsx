@@ -2,7 +2,6 @@
 
 import { useCurrentUser } from "@/hooks/getCurrentUserClient";
 import { Avatar, AvatarImage } from "./ui/avatar";
-import { redirect } from "next/dist/client/components/navigation";
 import { Loader2 } from "lucide-react";
 import { AvatarFallback } from "@radix-ui/react-avatar";
 
