@@ -3,6 +3,7 @@ import prismadb from "@/lib/prismadb";
 import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { MemoryManager } from "@/lib/memory";
+import { ratelimit } from "@/lib/ratelimiter";
 
 
 interface ChatIdProps {
@@ -21,6 +22,16 @@ export async function POST(
 
     if (!user || !user.given_name || !user.id) {
       return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+
+    const { success } = await ratelimit.limit(user.id);
+
+    if (!success) {
+      return new NextResponse(
+        "Too many requests. Please wait before trying again.",
+        { status: 429, headers: { "Content-Type": "application/json" } }
+      );
     }
 
     // Store user message
@@ -58,7 +69,7 @@ export async function POST(
     }
     await memoryManager.writeToHistory("User: " + prompt + "\n", companionKey);
 
-    const recentChatHistory =await memoryManager.readLatestHistory(companionKey);
+    const recentChatHistory = await memoryManager.readLatestHistory(companionKey);
 
     // Call Gemini
     const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GENAI_API_KEY });

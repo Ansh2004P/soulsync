@@ -1,0 +1,139 @@
+config:
+  target: 'http://localhost:3000'
+  phases:
+    # Warm-up phase
+    - duration: 30
+      arrivalRate: 1
+      name: "Warm-up"
+    
+    # Ramp-up phase
+    - duration: 60
+      arrivalRate: 1
+      rampTo: 10
+      name: "Ramp-up"
+    
+    # Sustained load phase
+    - duration: 120
+      arrivalRate: 10
+      name: "Sustained load"
+    
+    # Peak load phase
+    - duration: 60
+      arrivalRate: 10
+      rampTo: 25
+      name: "Peak load"
+    
+    # Cool-down phase
+    - duration: 30
+      arrivalRate: 25
+      rampTo: 1
+      name: "Cool-down"
+  
+  payload:
+    path: "./test-data.csv"
+    fields:
+      - "companionId"
+      - "categoryId"
+      - "searchTerm"
+      - "chatMessage"
+  
+  defaults:
+    headers:
+      'Content-Type': 'application/json'
+      'User-Agent': 'Artillery Load Test'
+  
+  plugins:
+    metrics-by-endpoint:
+      useOnlyRequestNames: true
+
+scenarios:
+  # Test authentication endpoints
+  - name: "Authentication Flow"
+    weight: 15
+    flow:
+      - get:
+          url: "/api/me"
+          name: "GET /api/me"
+          expect:
+            - statusCode: [200, 401]
+
+  # Test companion CRUD operations
+  - name: "Companion Operations"
+    weight: 40
+    flow:
+      # Create companion
+      - post:
+          url: "/api/companion"
+          name: "POST /api/companion"
+          json:
+            name: "Test Companion {{ $randomString() }}"
+            description: "A test companion for load testing"
+            instructions: "You are a helpful AI assistant for testing purposes"
+            seed: "Hello! I'm here to help you with testing."
+            categoryId: "{{ categoryId }}"
+            src: "https://example.com/avatar.png"
+          capture:
+            - json: "$.id"
+              as: "createdCompanionId"
+          expect:
+            - statusCode: [200, 201, 401, 400]
+
+      # Get companion details (if creation was successful)
+      - get:
+          url: "/api/companion/{{ createdCompanionId }}"
+          name: "GET /api/companion/[id]"
+          ifTrue: "createdCompanionId"
+          expect:
+            - statusCode: [200, 404, 401]
+
+      # Update companion (if creation was successful)
+      - patch:
+          url: "/api/companion/{{ createdCompanionId }}"
+          name: "PATCH /api/companion/[id]"
+          ifTrue: "createdCompanionId"
+          json:
+            name: "Updated Test Companion {{ $randomString() }}"
+            description: "An updated test companion for load testing"
+            instructions: "You are an updated helpful AI assistant for testing purposes"
+            seed: "Hello! I'm the updated version here to help you with testing."
+            categoryId: "{{ categoryId }}"
+            src: "https://example.com/updated-avatar.png"
+          expect:
+            - statusCode: [200, 404, 401, 400]
+
+  # Test chat functionality
+  - name: "Chat Operations"
+    weight: 35
+    flow:
+      # Send chat message
+      - post:
+          url: "/api/chat/{{ companionId }}"
+          name: "POST /api/chat/[chatId]"
+          json:
+            prompt: "{{ chatMessage }} - Load test message {{ $randomString() }}"
+          expect:
+            - statusCode: [200, 404, 401, 500]
+          think: 2  # Wait 2 seconds between chat requests to simulate realistic usage
+
+  # Test homepage and search functionality
+  - name: "Homepage and Search"
+    weight: 10
+    flow:
+      # Test homepage with different search parameters
+      - get:
+          url: "/?name={{ searchTerm }}"
+          name: "GET / (with search)"
+          expect:
+            - statusCode: [200, 500]
+
+      - get:
+          url: "/?categoryId={{ categoryId }}"
+          name: "GET / (with category filter)"
+          expect:
+            - statusCode: [200, 500]
+
+      - get:
+          url: "/?name={{ searchTerm }}&categoryId={{ categoryId }}"
+          name: "GET / (with search and category)"
+          expect:
+            - statusCode: [200, 500]

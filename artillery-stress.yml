@@ -1,0 +1,48 @@
+config:
+  target: 'http://localhost:3000'
+  phases:
+    # Extended stress test
+    - duration: 300  # 5 minutes
+      arrivalRate: 20
+      name: "Stress Test"
+  
+  payload:
+    path: "./test-data.csv"
+    fields:
+      - "companionId"
+      - "categoryId"
+      - "searchTerm"
+      - "chatMessage"
+  
+  defaults:
+    headers:
+      'Content-Type': 'application/json'
+      'User-Agent': 'Artillery Stress Test'
+
+scenarios:
+  - name: "Heavy Chat Load"
+    weight: 60
+    flow:
+      - post:
+          url: "/api/chat/{{ companionId }}"
+          name: "Heavy Chat Load"
+          json:
+            prompt: "{{ chatMessage }} - Stress test {{ $randomString() }}"
+          expect:
+            - statusCode: [200, 404, 401, 500]
+
+  - name: "Companion Management Stress"
+    weight: 40
+    flow:
+      - post:
+          url: "/api/companion"
+          name: "Create Companion Stress"
+          json:
+            name: "Stress Test Companion {{ $randomString() }}"
+            description: "Stress testing companion creation"
+            instructions: "Handle stress test scenarios"
+            seed: "I'm built for stress testing"
+            categoryId: "{{ categoryId }}"
+            src: "https://example.com/stress-avatar.png"
+          expect:
+            - statusCode: [200, 201, 401, 400, 500]

@@ -6,7 +6,14 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
+    "test:load": "artillery run artillery.yml",
+    "test:load:quick": "artillery run artillery.yml --config '{\"phases\":[{\"duration\":30,\"arrivalRate\":5}]}'",
+    "test:load:spike": "artillery run artillery-spike.yml",
+    "test:load:stress": "artillery run artillery-stress.yml",
+    "test:load:volume": "artillery run artillery-volume.yml",
+    "test:load:all": "node -e \"console.log('Use run-load-tests.bat or run-load-tests.sh for comprehensive testing')\""
   },
   "dependencies": {
     "@google/genai": "^1.12.0",
@@ -19,6 +26,7 @@
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-select": "^2.2.5",
     "@radix-ui/react-slot": "^1.2.3",
+    "@upstash/ratelimit": "^2.0.6",
     "@upstash/redis": "^1.35.3",
     "axios": "^1.11.0",
     "class-variance-authority": "^0.7.1",

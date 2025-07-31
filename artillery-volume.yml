@@ -1,0 +1,81 @@
+config:
+  target: 'http://localhost:3000'
+  phases:
+    # Volume test - sustained high load
+    - duration: 1800  # 30 minutes
+      arrivalRate: 15
+      name: "Volume Test"
+  
+  payload:
+    path: "./test-data.csv"
+    fields:
+      - "companionId"
+      - "categoryId"
+      - "searchTerm"
+      - "chatMessage"
+  
+  defaults:
+    headers:
+      'Content-Type': 'application/json'
+      'User-Agent': 'Artillery Volume Test'
+
+scenarios:
+  - name: "Sustained Chat Operations"
+    weight: 50
+    flow:
+      - post:
+          url: "/api/chat/{{ companionId }}"
+          name: "Sustained Chat"
+          json:
+            prompt: "{{ chatMessage }} - Volume test iteration {{ $randomInt(1, 1000) }}"
+          expect:
+            - statusCode: [200, 404, 401, 500]
+          think: 3  # 3 second pause between requests
+
+  - name: "Sustained Read Operations"
+    weight: 30
+    flow:
+      - get:
+          url: "/?name={{ searchTerm }}"
+          name: "Search Operations"
+          expect:
+            - statusCode: [200, 500]
+      
+      - get:
+          url: "/api/me"
+          name: "Profile Check"
+          expect:
+            - statusCode: [200, 401]
+
+  - name: "Mixed CRUD Operations"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/companion"
+          name: "Create for Volume"
+          json:
+            name: "Volume Test {{ $randomString() }}"
+            description: "Created during volume testing"
+            instructions: "Handle volume test scenarios efficiently"
+            seed: "Optimized for high volume operations"
+            categoryId: "{{ categoryId }}"
+            src: "https://example.com/volume-avatar.png"
+          capture:
+            - json: "$.id"
+              as: "volumeCompanionId"
+          expect:
+            - statusCode: [200, 201, 401, 400, 500]
+
+      - patch:
+          url: "/api/companion/{{ volumeCompanionId }}"
+          name: "Update for Volume"
+          ifTrue: "volumeCompanionId"
+          json:
+            name: "Updated Volume Test {{ $randomString() }}"
+            description: "Updated during volume testing"
+            instructions: "Updated to handle volume test scenarios"
+            seed: "Updated and optimized for high volume"
+            categoryId: "{{ categoryId }}"
+            src: "https://example.com/updated-volume-avatar.png"
+          expect:
+            - statusCode: [200, 404, 401, 400, 500]

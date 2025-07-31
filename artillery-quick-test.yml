@@ -1,0 +1,27 @@
+config:
+  target: 'http://localhost:3000'
+  phases:
+    - duration: 15
+      arrivalRate: 2
+      name: "Quick Validation Test"
+  
+  defaults:
+    headers:
+      'Content-Type': 'application/json'
+      'User-Agent': 'Artillery Quick Test'
+
+scenarios:
+  - name: "Basic Connectivity Test"
+    weight: 100
+    flow:
+      - get:
+          url: "/api/me"
+          name: "Auth Check"
+          expect:
+            - statusCode: [200, 401]
+      
+      - get:
+          url: "/"
+          name: "Homepage Load"
+          expect:
+            - statusCode: [200, 500]

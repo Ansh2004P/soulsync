@@ -1,0 +1,36 @@
+config:
+  target: 'http://localhost:3000'
+  phases:
+    # Spike test - sudden load increase
+    - duration: 10
+      arrivalRate: 1
+      name: "Baseline"
+    
+    - duration: 30
+      arrivalRate: 50
+      name: "Spike"
+    
+    - duration: 10
+      arrivalRate: 1
+      name: "Recovery"
+  
+  defaults:
+    headers:
+      'Content-Type': 'application/json'
+      'User-Agent': 'Artillery Spike Test'
+
+scenarios:
+  - name: "API Spike Test"
+    weight: 100
+    flow:
+      - get:
+          url: "/api/me"
+          name: "Auth Check"
+          expect:
+            - statusCode: [200, 401]
+      
+      - get:
+          url: "/"
+          name: "Homepage Load"
+          expect:
+            - statusCode: [200, 500]
