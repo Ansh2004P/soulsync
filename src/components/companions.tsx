@@ -3,7 +3,7 @@ import Link from "next/link"
 import { MessagesSquare } from "lucide-react";
 
 import { Card, CardFooter, CardHeader } from "@/components/ui/card"
-import { Companion } from "@/generated/prisma";
+import { Companion } from "@prisma/client";
 
 interface CompanionsProps {
     data: (Companion & {

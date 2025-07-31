@@ -1,6 +1,6 @@
 "use client";
 
-import { Companion, Message } from "@/generated/prisma";
+import { Companion, Message } from "@prisma/client";
 import { Button } from "./ui/button";
 import { ChevronLeft, Edit, MessagesSquare, MoreVertical, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";

@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 import qs from "query-string";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Category } from "@/generated/prisma";
+import { Category } from "@prisma/client";
 
 
 interface CategoriesProps {

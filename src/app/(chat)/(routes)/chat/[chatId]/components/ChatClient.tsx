@@ -4,7 +4,7 @@ import { ChatForm } from "@/components/chat-form";
 import { ChatHeader } from "@/components/chat-header";
 import { ChatMessageProps } from "@/components/chat-message";
 import { ChatMessages } from "@/components/chat-messages";
-import { Companion, Message } from "@/generated/prisma";
+import { Companion, Message } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState, ChangeEvent } from "react";
 import toast from "react-hot-toast";
