@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { ImageUpload } from "@/components/image-upload";
 import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger } from "@/components/ui/select";
 import { Separator } from "@radix-ui/react-dropdown-menu";
+import toast from "react-hot-toast";
 
 const PREAMBLE = `You are a fictional character whose name is Dr. Morgan. 
 You are a compassionate and knowledgeable physician who deeply cares about your patients' well-being. 
@@ -95,12 +96,13 @@ export const CompanionForm = ({
                 //create companion functionality
                 await axios.post("/api/companion", values);
             }
-
+            toast.success("Companion saved successfully");
 
             router.refresh();
             router.push("/");
         } catch (error) {
             console.error("Failed to save companion:", error);
+            toast.error("⚠️ Sorry, something went wrong. Please try again.");
         }
     };
 

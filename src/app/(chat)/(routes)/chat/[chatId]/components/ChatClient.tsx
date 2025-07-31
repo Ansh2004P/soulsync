@@ -7,6 +7,7 @@ import { ChatMessages } from "@/components/chat-messages";
 import { Companion, Message } from "@/generated/prisma";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState, ChangeEvent } from "react";
+import toast from "react-hot-toast";
 
 interface ChatClientProps {
     companion: Companion & {
@@ -53,17 +54,15 @@ export const ChatClient = ({ companion }: ChatClientProps) => {
 
             const botMessage: ChatMessageProps = {
                 role: "system",
-                content: data.reply, // backend sends { reply: string }
+                content: data.reply,
             };
 
             setMessages((current) => [...current, botMessage]);
         } catch (error) {
-            console.error("Error fetching Gemini response:", error);
-            const errorMessage: ChatMessageProps = {
-                role: "system",
-                content: "⚠️ Sorry, something went wrong. Please try again.",
-            };
-            setMessages((current) => [...current, errorMessage]);
+            // console.error("Error fetching Gemini response:", error);
+            toast.error("⚠️ Sorry, something went wrong. Please try again.");
+            
+            setMessages((current) => [...current]);
         } finally {
             setIsLoading(false);
             router.refresh(); // ensures db state sync
