@@ -19,11 +19,6 @@ export const Sidebar = () => {
             href: '/companion/new',
             label: "Create",
         },
-        {
-            icon: Settings,
-            href: '/settings',
-            label: "Settings",
-        },
     ];
 
     const onNavigate = (url: string) => {

@@ -14,6 +14,9 @@ export async function PATCH(
         if (!companionId)
             return new NextResponse("Companion ID is required", { status: 400 });
 
+        if (user!.id === process.env.DEFAULT_USER_ID!) {
+            return new NextResponse("Cannot delete default user companion", { status: 403 });
+        }
         if (!user || !user.id || !user.given_name) {
             return new NextResponse("Unauthorized", { status: 401 });
         }
@@ -46,7 +49,7 @@ export async function PATCH(
 };
 
 export async function DELETE(req: Request,
-    { params }: { params: Promise<{ companionId: string }>}
+    { params }: { params: Promise<{ companionId: string }> }
 ) {
     try {
         const user = await getCurrentUser();
@@ -54,6 +57,10 @@ export async function DELETE(req: Request,
         // console.log("User ID:", userId);
         if (!userId) {
             return new NextResponse("Unauthorized", { status: 401 });
+        }
+
+        if (userId === process.env.DEFAULT_USER_ID!) {
+            return new NextResponse("Cannot delete default user companion", { status: 403 });
         }
 
         const { companionId } = await params;

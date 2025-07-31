@@ -16,11 +16,22 @@ const RootPage = async ({
 }: RootPageProps) => {
 
     const user = await getCurrentUser();
+    const defaultUserId = process.env.DEFAULT_USER_ID;
     const params = await searchParams;
-
+    console.log("Default User ID:", defaultUserId);
     const data = await prismadb.companion.findMany({
         where: {
-            categoryId: params.categoryId || undefined,
+            AND: [
+                {
+                    OR: [
+                        { userId: user?.id },
+                        { userId: defaultUserId }
+                    ]
+                },
+                {
+                    categoryId: params.categoryId || undefined,
+                }
+            ],
             name: {
                 contains: params.name,
                 mode: "insensitive",

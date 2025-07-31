@@ -34,7 +34,7 @@ export const ChatHeader = ({ companion }: ChatHeaderProps) => {
         }
     }
 
-
+    // console.log("Companion ID:", companion.id);
     return (
         <div className="flex w-full justify-between items-center border-b border-primary/10 p-4">
             <div className="flex gap-x-2 items-center">
