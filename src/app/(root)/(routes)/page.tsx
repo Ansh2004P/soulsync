@@ -1,6 +1,7 @@
 import { Categories } from "@/components/categories";
 import { Companions } from "@/components/companions";
 import SearchInput from "@/components/search-input";
+import { getCurrentUser } from "@/hooks/use-currenUser";
 import prismadb from "@/lib/prismadb";
 
 interface RootPageProps {
@@ -14,6 +15,7 @@ const RootPage = async ({
     searchParams
 }: RootPageProps) => {
 
+    const user = await getCurrentUser();
     const params = await searchParams;
 
     const data = await prismadb.companion.findMany({
@@ -30,7 +32,9 @@ const RootPage = async ({
         include: {
             _count: {
                 select: {
-                    messages: true,
+                    messages: {
+                        where: { userId: user?.id },
+                    }
                 }
             }
         },
