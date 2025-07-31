@@ -3,30 +3,29 @@ import { ChatClient } from "./components/ChatClient";
 import { redirect } from "next/dist/client/components/navigation";
 import prismadb from "@/lib/prismadb";
 interface ChatIdProps {
-    params: {
-        chatId: string;
-    }
+    params: Promise<{ chatId: string }>
 }
 
 const ChatIdPage = async ({ params }: ChatIdProps) => {
 
+    const { chatId } = await params;
     const user = await getCurrentUser();
     const userId = user.id;
 
     if (!user) {
         redirect("/");
     }
-    const companion =await prismadb.companion.findUnique({
+    const companion = await prismadb.companion.findUnique({
         where: {
-            id: params.chatId,
-        }, 
+            id: chatId,
+        },
         include: {
             messages: {
                 orderBy: {
                     createdAt: "asc"
                 },
                 where: {
-                    userId,
+                    userId: userId,
                 },
             },
             _count: {
@@ -37,7 +36,7 @@ const ChatIdPage = async ({ params }: ChatIdProps) => {
         }
     });
 
-    if(!companion){
+    if (!companion) {
         return redirect("/");
     }
     return (

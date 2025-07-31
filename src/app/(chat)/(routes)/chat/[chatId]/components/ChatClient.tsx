@@ -6,44 +6,82 @@ import { ChatMessageProps } from "@/components/chat-message";
 import { ChatMessages } from "@/components/chat-messages";
 import { Companion, Message } from "@/generated/prisma";
 import { useRouter } from "next/navigation";
-import { ChangeEvent, ChangeEventHandler, FormEvent, useState } from "react";
+import { FormEvent, useState, ChangeEvent } from "react";
 
 interface ChatClientProps {
     companion: Companion & {
         messages: Message[];
-        _count: {
-            messages: number;
-        }
+        _count: { messages: number };
     };
-};
+}
 
 export const ChatClient = ({ companion }: ChatClientProps) => {
     const router = useRouter();
-    const [messages, setMessages] = useState<ChatMessageProps[]>(companion.messages || []);
+    const [messages, setMessages] = useState<ChatMessageProps[]>(
+        companion.messages || []
+    );
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
-    const onSubmit = (e: FormEvent<HTMLFormElement>) => {
+    const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!input.trim()) return;
+
+        // Add the user’s message to UI
         const userMessage: ChatMessageProps = {
             role: "user",
             content: input,
         };
-
         setMessages((current) => [...current, userMessage]);
+
+        const prompt = input;
         setInput("");
+        setIsLoading(true);
+
+        try {
+            const response = await fetch(`/api/chat/${companion.id}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch response");
+            }
+
+            const data = await response.json();
+
+            const botMessage: ChatMessageProps = {
+                role: "system",
+                content: data.reply, // backend sends { reply: string }
+            };
+
+            setMessages((current) => [...current, botMessage]);
+        } catch (error) {
+            console.error("Error fetching Gemini response:", error);
+            const errorMessage: ChatMessageProps = {
+                role: "system",
+                content: "⚠️ Sorry, something went wrong. Please try again.",
+            };
+            setMessages((current) => [...current, errorMessage]);
+        } finally {
+            setIsLoading(false);
+            router.refresh(); // ensures db state sync
+        }
     };
 
-    const handleInputChange = (e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>) => {
+    const handleInputChange = (
+        e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>
+    ) => {
         setInput(e.target.value);
     };
+
     return (
         <div className="flex flex-col h-screen p-4 space-y-2">
             <ChatHeader companion={companion} />
             <ChatMessages
                 companion={companion}
-                isLoading={false}
+                isLoading={isLoading}
                 messages={messages}
             />
             <ChatForm
@@ -53,5 +91,5 @@ export const ChatClient = ({ companion }: ChatClientProps) => {
                 onSubmit={onSubmit}
             />
         </div>
-    )
-}
+    );
+};

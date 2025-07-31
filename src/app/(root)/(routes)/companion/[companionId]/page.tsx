@@ -1,4 +1,4 @@
-import { CompanionForm } from "@/components/companion-form";
+import { CompanionForm } from "@/app/(root)/(routes)/companion/[companionId]/components/companion-form";
 import { getCurrentUser } from "@/hooks/use-currenUser";
 import prismadb from "@/lib/prismadb";
 import { redirect } from "next/navigation";

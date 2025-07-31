@@ -4,7 +4,6 @@ import { Companion, Message } from "@/generated/prisma";
 import { Button } from "./ui/button";
 import { ChevronLeft, Edit, MessagesSquare, MoreVertical, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Toaster } from "sonner";
 import { BotAvatar } from "./bot-avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import { useCurrentUser } from "@/hooks/getCurrentUserClient";
