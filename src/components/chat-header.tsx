@@ -8,6 +8,7 @@ import { Toaster } from "sonner";
 import { BotAvatar } from "./bot-avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import { useCurrentUser } from "@/hooks/getCurrentUserClient";
+import axios from "axios";
 
 interface ChatHeaderProps {
     companion: Companion & {
@@ -18,12 +19,25 @@ interface ChatHeaderProps {
     };
 };
 
-export const ChatHeader =({ companion }: ChatHeaderProps) => {
+export const ChatHeader = ({ companion }: ChatHeaderProps) => {
     const router = useRouter();
     const { user } = useCurrentUser();
 
+
+    const onDelete = async () => {
+        try {
+            await axios.delete(`/api/companion/${companion.id}`);
+            console.log("Chat deleted successfully");
+            router.refresh();
+            router.push("/");
+        } catch (error) {
+            console.error("Error deleting chat:", error);
+        }
+    }
+
+
     return (
-        <div className="flex w-full justify-between items-center border-b border-primary/10 pb-4">
+        <div className="flex w-full justify-between items-center border-b border-primary/10 p-4">
             <div className="flex gap-x-2 items-center">
                 <Button onClick={() => router.back()} size="icon" variant="ghost">
                     <ChevronLeft className="h-8 w-8" />
@@ -54,8 +68,8 @@ export const ChatHeader =({ companion }: ChatHeaderProps) => {
                             <Edit className="w-4 h-4 mr-2" />
                             Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
-                        // onClick={onDelete}
+                        <DropdownMenuItem
+                            onClick={onDelete}
                         >
                             <Trash className="w-4 h-4 mr-2" />
                             Delete
