@@ -1,3 +1,4 @@
+
 import { getCurrentUser } from "@/hooks/use-currenUser";
 import prismadb from "@/lib/prismadb";
 import { NextResponse } from "next/server";
@@ -54,6 +55,7 @@ export async function POST(
     }
 
     const name = companion.id;
+    const companion_file_name = name + ".txt";
 
     const companionKey = {
       companionName: name!,
@@ -69,7 +71,18 @@ export async function POST(
     }
     await memoryManager.writeToHistory("User: " + prompt + "\n", companionKey);
 
+    // Query Pinecone
     const recentChatHistory = await memoryManager.readLatestHistory(companionKey);
+
+    const similarDocs = await memoryManager.vectorSearch(
+      recentChatHistory,
+      companion_file_name
+    );
+
+    let relevantHistory = "";
+    if (!!similarDocs && similarDocs.length !== 0) {
+      relevantHistory = similarDocs.map((doc) => doc.pageContent).join("\n");
+    }
 
     // Call Gemini
     const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GENAI_API_KEY });
@@ -85,6 +98,11 @@ export async function POST(
                 ONLY generate plain sentences without prefix of who is speaking. DO NOT use ${companion.name}: prefix. 
 
                 ${companion.instructions}
+
+                 Below are relevant details about ${companion.name}'s past and the conversation you are in.
+                 ${relevantHistory}
+                 
+                 
                  ${recentChatHistory}\n${companion.name}:`
             },
           ],
