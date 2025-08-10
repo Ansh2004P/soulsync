@@ -132,6 +132,11 @@ export async function POST(
       },
     });
 
+    // Store the conversation in Pinecone for future vector search
+    const conversationToStore = `User: ${prompt}\n${companion.name}: ${replyText}`;
+    await memoryManager.storeInPinecone(conversationToStore, companion_file_name);
+    await memoryManager.writeToHistory(`${companion.name}: ` + replyText + "\n", companionKey);
+
     return NextResponse.json({ reply: replyText });
   } catch (error) {
     console.error("Error in POST request:", error);

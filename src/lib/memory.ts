@@ -1,7 +1,8 @@
 import { Redis } from '@upstash/redis'
 import { Pinecone } from '@pinecone-database/pinecone';
-import { OpenAIEmbeddings } from "@langchain/openai";
+// import { OpenAIEmbeddings } from "@langchain/openai";
 import { PineconeStore } from "@langchain/pinecone";
+import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 
 /**
  * @brief Represents a unique identifier for a companion chat session
@@ -43,7 +44,6 @@ export class MemoryManager {
         this.vectorDBClient = new Pinecone({
             apiKey: process.env.PINECONE_API_KEY!,
             maxRetries: 5,
-            assistantRegion: process.env.PINECONE_ENVIRONMENT!,
         });
     }
 
@@ -64,9 +64,16 @@ export class MemoryManager {
     public async vectorSearch(recentChatHistory: string, companionFileName: string) {
         const pineconeIndex = this.vectorDBClient.index(process.env.PINECONE_INDEX!);
 
-        const embeddings = new OpenAIEmbeddings({
-            model: "text-embedding-3-small", apiKey: process.env.OPENAI_API_KEY!
-        });
+        // const embeddings = new OpenAIEmbeddings({
+        //     model: "text-embedding-3-small", apiKey: process.env.OPENAI_API_KEY!
+        // });
+
+        const embeddings = new GoogleGenerativeAIEmbeddings({
+            apiKey: process.env.GEMINI_API_KEY!,
+            model: "text-embedding-004", // Latest model - 768 dimensions
+            maxConcurrency: 5,
+            maxRetries: 5,
+        })
 
         const vectorStore = await PineconeStore.fromExistingIndex(embeddings, {
             pineconeIndex,
@@ -75,9 +82,73 @@ export class MemoryManager {
 
         const similarDocs = await vectorStore.similaritySearch(recentChatHistory, 4, { fileName: companionFileName }).catch((err) => {
             console.warn("WARNING: failed to get vector search results.", err);
+            return undefined;
         });
+        
         return similarDocs;
     };
+
+    /**
+     * @brief Stores conversation data in Pinecone vector database
+     * @details Takes conversation text, creates embeddings, and stores them in Pinecone
+     * for future semantic search. This enables the AI to reference relevant past conversations.
+     * 
+     * @param text The conversation text to store as vectors
+     * @param companionFileName The specific companion's data file identifier
+     * @return Promise<boolean> True if successful, false otherwise
+     */
+    public async storeInPinecone(text: string, companionFileName: string): Promise<boolean> {
+        try {
+            const pineconeIndex = this.vectorDBClient.index(process.env.PINECONE_INDEX!);
+
+            const embeddings = new GoogleGenerativeAIEmbeddings({
+                apiKey: process.env.GEMINI_API_KEY!,
+                model: "text-embedding-004", // Latest model - 768 dimensions
+                maxConcurrency: 5,
+                maxRetries: 5,
+            });
+
+            const vectorStore = await PineconeStore.fromExistingIndex(embeddings, {
+                pineconeIndex,
+                maxConcurrency: 5
+            });
+
+            // Split text into chunks if it's too long
+            const chunks = this.splitTextIntoChunks(text, 1000);
+            
+            for (let i = 0; i < chunks.length; i++) {
+                await vectorStore.addDocuments([{
+                    pageContent: chunks[i],
+                    metadata: { 
+                        fileName: companionFileName,
+                        chunkIndex: i,
+                        timestamp: Date.now()
+                    }
+                }]);
+            }
+
+            return true;
+        } catch (error) {
+            console.error("Error storing in Pinecone:", error);
+            return false;
+        }
+    }
+
+    /**
+     * @brief Splits text into manageable chunks for vector storage
+     * @details Breaks long text into smaller pieces to avoid embedding size limits
+     * 
+     * @param text The text to split
+     * @param chunkSize Maximum size of each chunk
+     * @return string[] Array of text chunks
+     */
+    private splitTextIntoChunks(text: string, chunkSize: number = 1000): string[] {
+        const chunks: string[] = [];
+        for (let i = 0; i < text.length; i += chunkSize) {
+            chunks.push(text.slice(i, i + chunkSize));
+        }
+        return chunks;
+    }
 
     /**
      * @brief Gets or creates the singleton instance of MemoryManager
