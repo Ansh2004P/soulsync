@@ -43,7 +43,6 @@ export class MemoryManager {
         this.history = Redis.fromEnv();
         this.vectorDBClient = new Pinecone({
             apiKey: process.env.PINECONE_API_KEY!,
-            maxRetries: 5,
         });
     }
 
